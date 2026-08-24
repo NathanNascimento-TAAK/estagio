@@ -1,18 +1,8 @@
-// Use .apex files to store anonymous Apex.
-// You can execute anonymous Apex in VS Code by selecting the
-//     apex text and running the command:
-//     SFDX: Execute Anonymous Apex with Currently Selected Text
-// You can also execute the entire file by running the command:
-//     SFDX: Execute Anonymous Apex with Editor Contents
 
-// Exercicio 14
 
-interface Tributavel {
-    Decimal calcularTributo();
-}
-
-abstract class Conta {
-    Integer numeroConta;
+public abstract class Conta {
+    //public static Integer totalDeContas = 0;
+    static Integer numeroConta;
     String nomeTitular;
     Decimal saldo;
 
@@ -20,6 +10,7 @@ abstract class Conta {
         this.numeroConta = 0;
         this.nomeTitular = '';
         this.saldo = 0.0;
+        totalDeContas++;
     }
 
     public void depositar(Decimal valor) {
@@ -31,6 +22,10 @@ abstract class Conta {
     }
 
     public abstract Decimal calcularTaxa();
+}
+
+interface Tributavel {
+    Decimal calcularTributo();
 }
 
 class ContaCorrente extends Conta implements Tributavel {
@@ -67,21 +62,33 @@ class CalculadoraDeImpostos {
     }
 }
 
-
-
-ContaCorrente cc = new ContaCorrente();
-cc.depositar(1000);
-ContaCorrente cc2 = new ContaCorrente();
-cc2.depositar(500);
-
-CalculadoraDeImpostos calc = new CalculadoraDeImpostos(new List<Tributavel>{cc, cc2});
-
-System.debug('Total de impostos: ' + calc.calcularTodosImpostos().setScale(2));
-
 class SeguroDeVida implements Tributavel {
     public Decimal calcularTributo() {
         return 42;
     }
 }
+
+static class ValidadorFinanceiro {
+    public Boolean valorValido(Decimal valor){
+        if(valor > 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+ContaCorrente contaCorrente = new ContaCorrente();
+contaCorrente.depositar(1000);
+ContaPoupanca contaPoupanca = new ContaPoupanca();
+
+ValidadorFinanceiro val = new VaidadorFinanceiro();
+val.valorValido(1);
+
+val.valorValido(-69);
+
+System.debug('Total de contas: ' + totalDeContas);
+
 
 //Fim
