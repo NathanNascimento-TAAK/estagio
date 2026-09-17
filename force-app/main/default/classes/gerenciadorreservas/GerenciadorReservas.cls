@@ -2,7 +2,7 @@ public with sharing class GerenciadorReservas {
     private List<Reserva> reservas;
     private List<Reserva> reservasPendentes;
     private PoliticaAlocacaoMesa politicaAlocacao;
-    private FifoListaEspera politicaPromocaoFifo;
+    private PoliticaPromocaoListaEspera politicaPromocaoFifo;
 
     public GerenciadorReservas() {
         
@@ -15,10 +15,9 @@ public with sharing class GerenciadorReservas {
         this.politicaPromocaoFifo = politicaPromocaoFifo;
     }
 
-    public void criarReserva(Cliente cliente, Restaurante restaurante, Integer quantidadePessoas, LocalMesa localPreferencia, PeriodoReserva periodo, Boolean aceitaListaEspera) {
-        QuantidadePessoas quantidade = new QuantidadePessoas(quantidadePessoas);
-        List<Mesa> mesasDisponiveis = buscarDisponibilidade(restaurante, quantidade, localPreferencia, periodo);
-        Mesa mesa = politicaAlocacao.selecionarMesa(mesasDisponiveis, quantidade, localPreferencia, periodo);
+    public void criarReserva(Cliente cliente, Restaurante restaurante, QuantidadePessoas quantidadePessoas, LocalMesa localPreferencia, PeriodoReserva periodo, Boolean aceitaListaEspera) {
+        List<Mesa> mesasDisponiveis = buscarDisponibilidade(restaurante, quantidadePessoas, localPreferencia, periodo);
+        Mesa mesa = politicaAlocacao.selecionarMesa(mesasDisponiveis, quantidadePessoas, localPreferencia, periodo);
 
         Reserva reserva = new Reserva(cliente, restaurante, quantidadePessoas, localPreferencia, periodo);
         if (mesa != null) {
