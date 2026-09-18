@@ -34,7 +34,7 @@ public with sharing class GerenciadorReservas {
     public List<Mesa> buscarDisponibilidade(Restaurante restaurante, QuantidadePessoas quantidade, LocalMesa localizacao, PeriodoReserva periodo) {
         List<Mesa> disponiveis = new List<Mesa>();
         for (Mesa mesa : restaurante.getMesas()) {
-            if (mesa.getQuantidadePessoas() < quantidade.getQuantidade() || mesa.getLocalizacao() != localizacao) {
+            if (mesa.getCapacidade() < quantidade.getQuantidadePessoas() || mesa.getLocalizacao() != localizacao) {
                 continue;
             }
             Boolean ocupada = false;
