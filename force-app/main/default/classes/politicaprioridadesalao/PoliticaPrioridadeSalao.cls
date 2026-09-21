@@ -10,6 +10,9 @@ public with sharing class PoliticaPrioridadeSalao implements PoliticaAlocacaoMes
                 menorMesa = mesa;
             }
         }
-        return menorMesa != null ? menorMesa : new MenorMesaViavel().selecionarMesa(mesas, qtdPessoas, localizacao, periodo);
+
+        if(menorMesa == null) throw new Exception('Não há mesas para esta reserva!');
+
+        return menorMesa;
     }
 }

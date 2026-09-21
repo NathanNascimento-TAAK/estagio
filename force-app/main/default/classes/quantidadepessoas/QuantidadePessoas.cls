@@ -1,10 +1,10 @@
 public with sharing class QuantidadePessoas {
     private Integer quantidadePessoas { get; set; }
     public QuantidadePessoas(Integer quantidadePessoas) {
-        if(quantidadePessoas > 0) {
+        if(quantidadePessoas > 0 || quantidadePessoas == null) {
             this.quantidadePessoas = quantidadePessoas;
         } else {
-            throw new IllegalArgumentException('A quantidade de pessoas deve ser maior que zero.');
+            throw new IllegalArgumentException('A quantidade de pessoas não pode ser nulo e deve ser maior que zero.');
         }
     }
 

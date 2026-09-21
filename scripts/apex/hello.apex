@@ -67,7 +67,7 @@ try {
     System.debug('ERRO: mesa duplicada foi adicionada.');
 
 } catch (Exception e) {
-    System.debug('Mesa duplicada corretamente rejeitada: ' + e.getMessage());
+    System.debug('Mesa duplicada rejeitada: ' + e.getMessage());
 }
 
 
@@ -159,7 +159,7 @@ reservaPromocao.promover();
 
 System.debug('Estado após promover: ' + reservaPromocao.status);
 
-// 13. CRIAÇÃO DE RESERVA PELO GERENCIADOR
+// gerenciador de reserva
 
 gerenciador.criarReserva(
     cliente1,
@@ -172,7 +172,7 @@ gerenciador.criarReserva(
 
 System.debug('Quantidade de reservas no restaurante: ' + restaurante.getReservas().size());
 
-// 14. TESTE DE LISTA DE ESPERA
+// lista de espera
 
 gerenciador.criarReserva(
     cliente2,
@@ -185,7 +185,7 @@ gerenciador.criarReserva(
 
 System.debug('Reservas pendentes: ' + restaurante.getReservas().size());
 
-// 15. TESTE DA POLÍTICA MENOR MESA VIÁVEL
+// politica de menor mesa viavel
 
 List<Mesa> mesasTeste = restaurante.getMesas();
 
@@ -205,7 +205,7 @@ if (menorMesa != null) {
     System.debug('Capacidade: ' +  menorMesa.getCapacidade());
 }
 
-// 16. TESTE DA POLÍTICA MAIOR MESA DISPONÍVEL
+// teste de politica maior mesa viavel
 
 Mesa maiorMesa =
     politicaMaior.selecionarMesa(
@@ -223,7 +223,7 @@ if (maiorMesa != null) {
     System.debug('Capacidade: ' + maiorMesa.getCapacidade());
 }
 
-// 17. TESTE DA LISTA FIFO
+// teste do FiFo
 
 List<Reserva> reservasPendentes = new List<Reserva>();
 
@@ -258,7 +258,7 @@ if (reservaSelecionada != null) {
     System.debug('Nenhuma reserva encontrada.');
 }
 
-// 18. TESTE DE CANCELAMENTO
+// cancelamento
 
 if (reserva1 != null) {
     System.debug('CANCELAMENTO');
@@ -267,7 +267,7 @@ if (reserva1 != null) {
     System.debug('Status depois: ' + reserva1.status);
 }
 
-// 19. TESTE DO RELATÓRIO
+// relatorio
 
 RelatorioReservasService relatorioService = new RelatorioReservasService();
 
@@ -280,7 +280,7 @@ List<Restaurante> restaurantes = new List<Restaurante>();
 
 restaurantes.add(restaurante);
 
-Map<Documento, List<Reserva>> relatorio = relatorioService.gerarRelatorioReservasPorCpf(documentos, restaurantes);
+Map<Documento, List<Reserva>> relatorio = relatorioService.gerarRelatorioReservas(documentos, restaurantes);
 
 System.debug('RELATÓRIO');
 
@@ -291,7 +291,7 @@ for (Documento documento : relatorio.keySet()) {
     System.debug('Quantidade de reservas confirmadas: ' + relatorio.get(documento).size());
 
     for (Reserva reserva : relatorio.get(documento)) {
-        System.debug('Restaurante: ' + reserva.restaurante.getNome() + ' | Mesa: ' + (reserva.mesa != null ? String.valueOf(reserva.mesa.getIdentificador()) : 'Sem mesa') + ' | Status: ' + reserva.status);
+        System.debug('Restaurante: ' + reserva.restaurante.getNome() + ' / Mesa: ' + (reserva.mesa != null ? String.valueOf(reserva.mesa.getIdentificador()) : 'Sem mesa') + ' / Status: ' + reserva.status);
     }
 }
 

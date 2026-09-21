@@ -3,7 +3,7 @@ public with sharing class RelatorioReservasService {
 
     }
     
-    public Map<Documento, List<Reserva>> gerarRelatorioReservasPorCpf(List<Documento> cpfs, List<Restaurante> restaurantes) {
+    public Map<Documento, List<Reserva>> gerarRelatorioReservas(List<Documento> cpfs, List<Restaurante> restaurantes) {
         Map<Documento, List<Reserva>> relatorio = new Map<Documento, List<Reserva>>();
 
         for(Documento cpf : cpfs) {
