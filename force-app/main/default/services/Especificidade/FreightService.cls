@@ -25,7 +25,7 @@ public with sharing class FreightService {
             if(orderRecord.Distribution_Center__c != null) {
                 dcIds.add(orderRecord.Distribution_Center__c);
             }
-            if(orderRecord.Account != null && orderRecord.Account_Address__c != null) {
+            if(orderRecord.AccountId != null && orderRecord.Account_Address__c != null) {
                 if(orderRecord.Account_Address__r.City__c != null) {
                     cityIds.add(orderRecord.Account_Address__r.City__c);
                 }
@@ -61,5 +61,34 @@ public with sharing class FreightService {
         }
 
         return freights[0];
+    }
+
+    public void validateExistingFreights(List<Freight__c> newFreights, List<Freight__c> existingFreights) {
+        for(Freight__c newFreight : newFreights) {
+            Boolean hasProduct = newFreight.Product__c != null;
+            Boolean hasHierarchy = newFreight.Product_Hierarchy__c != null;
+            Boolean hasCity = newFreight.City__c != null;
+            Boolean hasState = newFreight.State__c != null;
+            Boolean hasCountry = newFreight.Country__c != null;
+            Boolean hasSingleProduct = hasProduct != hasHierarchy;
+            Boolean hasSingleLocation =
+                (hasCity && !hasState && !hasCountry)
+                || (!hasCity && hasState && !hasCountry)
+                || (!hasCity && !hasState && hasCountry);
+
+            if(!hasSingleProduct || !hasSingleLocation) {
+                continue;
+            }
+
+            for(Freight__c existingFreight : existingFreights) {
+                if(newFreight.Product__c != null && newFreight.Product__c == existingFreight.Product__c && newFreight.Distribution_Center__c == existingFreight.Distribution_Center__c && newFreight.State__c == existingFreight.State__c && newFreight.City__c == existingFreight.City__c && newFreight.Country__c == existingFreight.Country__c) {
+                    newFreight.addError('Já existe um registro de frete para este produto/hierarquia e localidade.');
+                }
+                else if(newFreight.Product_Hierarchy__c != null && newFreight.Product_Hierarchy__c == existingFreight.Product_Hierarchy__c && newFreight.Distribution_Center__c == existingFreight.Distribution_Center__c && newFreight.State__c == existingFreight.State__c && newFreight.City__c == existingFreight.City__c && newFreight.Country__c == existingFreight.Country__c) {
+                    newFreight.addError('Já existe um registro de frete para este produto/hierarquia e localidade.');
+                }
+            }
+        }
+
     }
 }

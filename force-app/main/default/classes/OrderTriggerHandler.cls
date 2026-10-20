@@ -6,7 +6,7 @@ public with sharing class OrderTriggerHandler extends TriggerHandler {
             if(oldOrder.Status == 'Activated') {
                 newOrder.addError('Não é possivel alterar um pedido já ativo!');
             }
-            else if(oldOrder.Account != newOrder.Account) {
+            else if(newOrder.AccountId != oldOrder.AccountId) {
                 newOrder.addError('Não é possivel alterar a conta do pedido após sua criação');
             }
         }

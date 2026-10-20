@@ -66,7 +66,7 @@ public with sharing class MarginService {
 
         List<Margin__c> candidateMargins = [
             SELECT Id, Product__c, Product_Hierarchy__c, Account__c, Account_Group__c,
-                City__c, State__c, Country__c, CreatedDate
+                City__c, State__c, Country__c, Value__c, CreatedDate
             FROM Margin__c
             WHERE (Product__c IN :productIds OR Product_Hierarchy__c IN :hierarchyIds)
                 AND (Account__c IN :accountIds OR Account_Group__c IN :accountGroupIds)
