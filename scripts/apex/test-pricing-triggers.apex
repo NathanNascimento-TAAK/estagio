@@ -48,6 +48,107 @@ PricebookEntry productPrice = productFixtures[0];
 Id cityId = orderFixture.Account_Address__r.City__c;
 Id stateId = orderFixture.Account_Address__r.City__r.State__c;
 Id countryId = orderFixture.Account_Address__r.City__r.State__r.Country__c;
+OrderItem selectionItem = new OrderItem(Product2Id = productPrice.Product2Id);
+MarginService marginService = new MarginService();
+Margin__c selectedMargin = marginService.getSpecificMargin(
+    selectionItem,
+    productPrice.Product2,
+    orderFixture,
+    new List<Margin__c>{
+        new Margin__c(
+            Product_Hierarchy__c = productPrice.Product2.Product_Hierarchy__c,
+            Account_Group__c = orderFixture.Account.Account_Group__c,
+            Distribution_Center__c = orderFixture.Distribution_Center__c,
+            Country__c = countryId,
+            Value__c = 0.10
+        ),
+        new Margin__c(
+            Product__c = productPrice.Product2Id,
+            Account__c = orderFixture.AccountId,
+            Distribution_Center__c = orderFixture.Distribution_Center__c,
+            City__c = cityId,
+            Value__c = 0.25
+        )
+    }
+);
+Boolean marginSpecificityPassed =
+    selectedMargin != null && selectedMargin.Value__c == 0.25;
+executed++;
+if (!marginSpecificityPassed) {
+    failures++;
+}
+System.debug(
+    (marginSpecificityPassed ? '[PASS] ' : '[FAIL] ')
+        + 'Margem: priorizar produto, conta e cidade mais específicos'
+);
+
+FreightService freightService = new FreightService();
+Freight__c selectedFreight = freightService.getSpecificFreight(
+    selectionItem,
+    productPrice.Product2,
+    orderFixture,
+    new List<Freight__c>{
+        new Freight__c(
+            Product_Hierarchy__c = productPrice.Product2.Product_Hierarchy__c,
+            Distribution_Center__c = orderFixture.Distribution_Center__c,
+            Country__c = countryId,
+            Value__c = 10
+        ),
+        new Freight__c(
+            Product__c = productPrice.Product2Id,
+            Distribution_Center__c = orderFixture.Distribution_Center__c,
+            City__c = cityId,
+            Value__c = 20
+        )
+    }
+);
+Boolean freightSpecificityPassed =
+    selectedFreight != null && selectedFreight.Value__c == 20;
+executed++;
+if (!freightSpecificityPassed) {
+    failures++;
+}
+System.debug(
+    (freightSpecificityPassed ? '[PASS] ' : '[FAIL] ')
+        + 'Frete: priorizar produto e cidade sobre hierarquia e país'
+);
+
+List<Tax__c> taxSelectionCandidates = new List<Tax__c>{
+    new Tax__c(
+        Product__c = productPrice.Product2Id,
+        State__c = stateId,
+        Tax_on_Cost__c = 0.03
+    ),
+    new Tax__c(
+        Product__c = productPrice.Product2Id,
+        Distribution_Center__c = orderFixture.Distribution_Center__c,
+        State__c = stateId,
+        Tax_on_Cost__c = 0.07
+    )
+};
+TaxService taxService = new TaxService();
+Tax__c selectedTax = taxService.getSpecificTax(
+    selectionItem,
+    orderFixture,
+    taxSelectionCandidates
+);
+Tax__c unmatchedTax = taxService.getSpecificTax(
+    selectionItem,
+    orderFixture,
+    new List<Tax__c>{ taxSelectionCandidates[0] }
+);
+Boolean taxSpecificityPassed =
+    selectedTax != null && selectedTax.Tax_on_Cost__c == 0.07
+    && unmatchedTax == null;
+executed++;
+if (!taxSpecificityPassed) {
+    failures++;
+}
+System.debug(
+    (taxSpecificityPassed ? '[PASS] ' : '[FAIL] ')
+        + 'Imposto: exigir produto, centro e estado correspondentes'
+);
+
 String productValidationError =
     'Preencha um produto ou uma Hierarquia de produto. (Apenas um deles pode ser preenchido.)';
 String localityValidationError =

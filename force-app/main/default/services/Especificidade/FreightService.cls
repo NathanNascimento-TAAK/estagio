@@ -2,8 +2,17 @@ public with sharing class FreightService {
 
     public List<Freight__c> getFreights(List<OrderItem> orderItems) {
         if(orderItems == null || orderItems.isEmpty()) return new List<Freight__c>();
+        Set<Id> productIds = new Set<Id>();
+        Set<Id> productHierarchyIds = new Set<Id>();
+        for(OrderItem item : orderItems) {
+            productIds.add(item.Product2Id);
+        }
 
-        Set<Id> orderIds = new Set<Id>();
+        List<Product2> products = [SELECT Id, Product_Hierarchy__c FROM Product2 WHERE Id IN :productIds];
+        for(Product2 product : products) {
+            productHierarchyIds.add(product.Product_Hierarchy__c);
+        }
+        /*Set<Id> orderIds = new Set<Id>();
         Set<Id> productIds = new Set<Id>();
 
         for(OrderItem item : orderItems) {
@@ -36,9 +45,9 @@ public with sharing class FreightService {
                     countryIds.add(orderRecord.Account_Address__r.City__r.State__r.Country__c);
                 }
             }
-        }
+        }*/
 
-        List<Freight__c> selectedFreights = [SELECT Id, Product__c, Product_Hierarchy__c, Status__c, Value__c, City__c, State__c, Country__c, CreatedDate FROM Freight__c WHERE Status__c = 'Approved' AND Distribution_Center__c IN :dcIds AND Product__c IN :productIds AND (City__c IN :cityIds OR State__c IN :stateIds OR Country__c IN :countryIds) ORDER BY CreatedDate DESC];
+        List<Freight__c> selectedFreights = [SELECT City__c, Country__c, CreatedDate, Distribution_Center__c, Id, LastModifiedById, Product_Hierarchy__c, Product__c, State__c, Status__c, Value__c FROM Freight__c WHERE Product__c IN :productIds OR Product_Hierarchy__c IN :productHierarchyIds ORDER BY CreatedDate DESC ];
 
         return selectedFreights;
     }

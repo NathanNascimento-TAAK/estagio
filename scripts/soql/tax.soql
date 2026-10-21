@@ -1,0 +1,3 @@
+SELECT CreatedDate, Distribution_Center__c, Id, Product__c, State__c, Status__c, Tax_on_Cost__c
+  FROM Tax__c
+  ORDER BY CreatedDate DESC

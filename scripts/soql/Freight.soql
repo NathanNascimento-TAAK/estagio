@@ -1,0 +1,3 @@
+SELECT City__c, Country__c, CreatedDate, Distribution_Center__c, Id, LastModifiedById, Product_Hierarchy__c, Product__c, State__c, Status__c, Value__c
+  FROM Freight__c
+  ORDER BY CreatedDate DESC

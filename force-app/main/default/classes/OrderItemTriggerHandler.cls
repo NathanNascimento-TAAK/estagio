@@ -25,15 +25,13 @@ public with sharing class OrderItemTriggerHandler extends TriggerHandler {
         Map<Id, Product2> productsById = new Map<Id, Product2>([SELECT Id, Production_Cost__c FROM Product2 WHERE Id IN :productIds]);
         for(OrderItem ord : (List<OrderItem>) Trigger.new) {
             Product2 product = productsById.get(ord.Product2Id);
-            ord.Price_without_Margin__c = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c);
-            ord.UnitPrice = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c) * (1 + ord.Margin_Percentage__c);
-            if(ord.Discount__c == null) {
-                ord.Discount__c = 0;
-            }
-            ord.Final_Price__c = ord.UnitPrice * ord.Quantity * (1 - ord.Discount__c);
+            ord.Price_without_Margin__c = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c / 100);
+            ord.UnitPrice = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c / 100) * (1 + ord.Margin_Percentage__c / 100);
+            ord.Final_Price__c = ord.UnitPrice * ord.Quantity;
             if(ord.Final_Price__c == 0) {
                 ord.addError('O preço final do item do pedido não pode ser zero. Contate o time de Pricing.');
             }
+            ord.Discount__c = (ord.Final_Price__c - ord.UnitPrice) / ord.Final_Price__c;
         }
     }
 
@@ -46,16 +44,13 @@ public with sharing class OrderItemTriggerHandler extends TriggerHandler {
         for(OrderItem ord : (List<OrderItem>) Trigger.new) {
             Product2 product = productsById.get(ord.Product2Id);
             if(product != null && product.Production_Cost__c != null) {
-                ord.Price_without_Margin__c = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c);
-                ord.UnitPrice = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c) * (1 + ord.Margin_Percentage__c);
-                if(ord.Discount__c == null) {
-                    ord.Discount__c = 0;
-                }
-                ord.Final_Price__c =
-                    ord.UnitPrice * ord.Quantity * (1 - ord.Discount__c);
+                ord.Price_without_Margin__c = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c / 100);
+                ord.UnitPrice = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c / 100) * (1 + ord.Margin_Percentage__c / 100);
+                ord.Final_Price__c = ord.UnitPrice * ord.Quantity;
                 if(ord.Final_Price__c == 0) {
                     ord.addError('O preço final do item do pedido não pode ser zero. Contate o time de Pricing.');
                 }
+                ord.Discount__c = (ord.Final_Price__c - ord.UnitPrice) / ord.Final_Price__c;
             }
         }
     }
