@@ -16,35 +16,6 @@ public with sharing class MarginService {
             }
         }
 
-        /*for (Product2 product : productsById.values()) {
-            if (product.Product_Hierarchy__c != null) {
-                hierarchyIds.add(product.Product_Hierarchy__c);
-            }
-        }
-        
-        for (Order orderRecord : ordersById.values()) {
-            if (orderRecord.AccountId != null) {
-                accountIds.add(orderRecord.AccountId);
-            }
-            if (orderRecord.Account != null && orderRecord.Account.Account_Group__c != null) {
-                accountGroupIds.add(orderRecord.Account.Account_Group__c);
-            }
-            if (orderRecord.Account_Address__c != null) {
-                if (orderRecord.Account_Address__r.City__c != null) {
-                    cityIds.add(orderRecord.Account_Address__r.City__c);
-                    stateIds.add(orderRecord.Account_Address__r.City__r.State__c);
-                    countryIds.add(orderRecord.Account_Address__r.City__r.State__r.Country__c);
-                }
-            }
-        }
-
-        if (accountIds.isEmpty() && accountGroupIds.isEmpty()) {
-            return selectedMargins;
-        }
-        if (cityIds.isEmpty() && stateIds.isEmpty() && countryIds.isEmpty()) {
-            return selectedMargins;
-        }*/
-
         List<Margin__c> candidateMargins = [
             SELECT Account_Group__c, Account__c, City__c, Country__c, CreatedDate, Distribution_Center__c, Id, Product_Hierarchy__c, Product__c, State__c, Status__c, Value__c FROM Margin__c WHERE Status__c = 'Approved' AND (Product__c IN :productIds OR Product_Hierarchy__c IN :productHierarchyIds) ORDER BY CreatedDate DESC
         ];

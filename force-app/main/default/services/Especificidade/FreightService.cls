@@ -115,6 +115,5 @@ public with sharing class FreightService {
                 }
             }
         }
-
     }
 }
