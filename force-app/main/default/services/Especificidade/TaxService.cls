@@ -29,15 +29,53 @@ public with sharing class TaxService {
         return taxes;
     }
 
-    public Tax__c getSpecificTax(OrderItem ord, List<Tax__c> taxes) {
-        Order orderRecord = [SELECT Id, AccountId, Account_Address__c, Account_Address__r.City__c, Account_Address__r.City__r.State__c, Account_Address__r.City__r.State__r.Country__c, Distribution_Center__c FROM Order WHERE Id = :ord.OrderId LIMIT 1];
-        if(taxes.isEmpty()) return null;
-        Tax__c specificTax = null;
-        for(Tax__c tax : taxes) {
-            if(tax.Product__c == ord.Product2Id && tax.Distribution_Center__c == orderRecord.Distribution_Center__c && tax.State__c == orderRecord.Account_Address__r.City__r.State__c) {
-                return tax;
+    public Tax__c getSpecificTax(
+        OrderItem item,
+        Order orderRecord,
+        List<Tax__c> taxes
+    ) {
+        if (
+            item == null ||
+            item.Product2Id == null ||
+            orderRecord == null ||
+            taxes == null ||
+            taxes.isEmpty()
+        ) {
+            return null;
+        }
+
+        Id stateId;
+
+        if (
+            orderRecord.Account_Address__r != null &&
+            orderRecord.Account_Address__r.City__r != null
+        ) {
+            stateId = orderRecord.Account_Address__r.City__r.State__c;
+        }
+
+        Tax__c bestTax;
+
+        for (Tax__c tax : taxes) {
+            if (
+                tax.Product__c == item.Product2Id &&
+                tax.Distribution_Center__c == orderRecord.Distribution_Center__c &&
+                tax.State__c == stateId
+            ) {
+                if (
+                    bestTax == null ||
+                    (
+                        tax.CreatedDate != null &&
+                        (
+                            bestTax.CreatedDate == null ||
+                            tax.CreatedDate > bestTax.CreatedDate
+                        )
+                    )
+                ) {
+                    bestTax = tax;
+                }
             }
         }
-        return taxes[0];
+
+        return bestTax;
     }
 }

@@ -12,64 +12,84 @@ public with sharing class FreightService {
         for(Product2 product : products) {
             productHierarchyIds.add(product.Product_Hierarchy__c);
         }
-        /*Set<Id> orderIds = new Set<Id>();
-        Set<Id> productIds = new Set<Id>();
-
-        for(OrderItem item : orderItems) {
-            if(item.OrderId != null) {
-                orderIds.add(item.OrderId);
-            }
-            if(item.Product2Id != null) {
-                productIds.add(item.Product2Id);
-            }
-        }
-        Set<Id> dcIds = new Set<Id>();
-        Set<Id> stateIds = new Set<Id>();
-        Set<Id> cityIds = new Set<Id>();
-        Set<Id> countryIds = new Set<Id>();
-
-        List<Order> orders = [SELECT Id, AccountId, Account_Address__c, Account_Address__r.City__c, Account_Address__r.City__r.State__c, Account_Address__r.City__r.State__r.Country__c, Distribution_Center__c FROM Order WHERE Id IN :orderIds];
-
-        for(Order orderRecord : orders) {
-            if(orderRecord.Distribution_Center__c != null) {
-                dcIds.add(orderRecord.Distribution_Center__c);
-            }
-            if(orderRecord.AccountId != null && orderRecord.Account_Address__c != null) {
-                if(orderRecord.Account_Address__r.City__c != null) {
-                    cityIds.add(orderRecord.Account_Address__r.City__c);
-                }
-                if(orderRecord.Account_Address__r.City__r.State__c != null) {
-                    stateIds.add(orderRecord.Account_Address__r.City__r.State__c);
-                }
-                if(orderRecord.Account_Address__r.City__r.State__r.Country__c != null) {
-                    countryIds.add(orderRecord.Account_Address__r.City__r.State__r.Country__c);
-                }
-            }
-        }*/
-
         List<Freight__c> selectedFreights = [SELECT City__c, Country__c, CreatedDate, Distribution_Center__c, Id, LastModifiedById, Product_Hierarchy__c, Product__c, State__c, Status__c, Value__c FROM Freight__c WHERE Product__c IN :productIds OR Product_Hierarchy__c IN :productHierarchyIds ORDER BY CreatedDate DESC ];
 
         return selectedFreights;
     }
 
-    public Freight__c getSpecificFreight(OrderItem ord,List<Freight__c> freights) {
-        Order orderRecord = [SELECT Id, AccountId, Account_Address__c, Account_Address__r.City__c, Account_Address__r.City__r.State__c, Account_Address__r.City__r.State__r.Country__c, Distribution_Center__c FROM Order WHERE Id = :ord.OrderId LIMIT 1];
-        if(freights.isEmpty()) return null;
-        for(Freight__c freight : freights) {
-            if(freight.Product__c == null && freight.Product_Hierarchy__c == ord.Product2.Product_Hierarchy__c) {
-                if(freight.City__c == orderRecord.Account_Address__r.City__c) return freight;
-                else if(freight.State__c == orderRecord.Account_Address__r.City__r.State__c) return freight;
-                else if(freight.Country__c == orderRecord.Account_Address__r.City__r.State__r.Country__c) return freight;
-            }
-            else if(freight.Product__c == ord.Product2Id) {
-                if(freight.City__c == orderRecord.Account_Address__r.City__c) return freight;
-                else if(freight.State__c == orderRecord.Account_Address__r.City__r.State__c) return freight;
-                else if(freight.Country__c == orderRecord.Account_Address__r.City__r.State__r.Country__c) return freight;
-            }
-            else continue;
+    public Freight__c getSpecificFreight(OrderItem item, Product2 product, Order orderRecord, List<Freight__c> freights){
+        if (item == null || product == null || orderRecord == null || freights == null || freights.isEmpty()) {
+            return null;
         }
 
-        return freights[0];
+        Id cityId;
+        Id stateId;
+        Id countryId;
+
+        if (orderRecord.Account_Address__r != null) {
+            cityId = orderRecord.Account_Address__r.City__c;
+
+            if (orderRecord.Account_Address__r.City__r != null) {
+                stateId = orderRecord.Account_Address__r.City__r.State__c;
+
+                if (orderRecord.Account_Address__r.City__r.State__r != null) {
+                    countryId =
+                        orderRecord.Account_Address__r.City__r.State__r.Country__c;
+                }
+            }
+        }
+
+        Freight__c bestFreight;
+
+        for (Freight__c freight : freights) {
+            if (freight.Distribution_Center__c != orderRecord.Distribution_Center__c) {
+                continue;
+            }
+
+            Boolean exactProduct = freight.Product__c == item.Product2Id;
+            Boolean exactHierarchy = freight.Product_Hierarchy__c == product.Product_Hierarchy__c;
+
+            if (!exactProduct && !exactHierarchy) {
+                continue;
+            }
+
+            Boolean exactCity = freight.City__c != null && freight.City__c == cityId;
+            Boolean exactState = freight.State__c != null && freight.State__c == stateId;
+            Boolean exactCountry = freight.Country__c != null && freight.Country__c == countryId;
+
+            if (!exactCity && !exactState && !exactCountry) {
+                continue;
+            }
+
+            if (bestFreight == null) {
+                bestFreight = freight;
+                continue;
+            }
+
+            Boolean bestUsesExactProduct = bestFreight.Product__c == item.Product2Id;
+            Boolean bestUsesExactCity = bestFreight.City__c != null && bestFreight.City__c == cityId;
+            Boolean bestUsesExactState = bestFreight.State__c != null && bestFreight.State__c == stateId;
+            Boolean bestUsesExactCountry = bestFreight.Country__c != null && bestFreight.Country__c == countryId;
+            Boolean candidateIsMoreSpecific = false;
+
+            if (exactProduct != bestUsesExactProduct) {
+                candidateIsMoreSpecific = exactProduct;
+            } else if (exactCity != bestUsesExactCity) {
+                candidateIsMoreSpecific = exactCity;
+            } else if (exactState != bestUsesExactState) {
+                candidateIsMoreSpecific = exactState;
+            } else if (exactCountry != bestUsesExactCountry) {
+                candidateIsMoreSpecific = exactCountry;
+            } else if (freight.CreatedDate != null && (bestFreight.CreatedDate == null || freight.CreatedDate > bestFreight.CreatedDate)) {
+                candidateIsMoreSpecific = true;
+            }
+
+            if (candidateIsMoreSpecific) {
+                bestFreight = freight;
+            }
+        }
+
+        return bestFreight;
     }
 
     public void validateExistingFreights(List<Freight__c> newFreights, List<Freight__c> existingFreights) {
@@ -80,10 +100,7 @@ public with sharing class FreightService {
             Boolean hasState = newFreight.State__c != null;
             Boolean hasCountry = newFreight.Country__c != null;
             Boolean hasSingleProduct = hasProduct != hasHierarchy;
-            Boolean hasSingleLocation =
-                (hasCity && !hasState && !hasCountry)
-                || (!hasCity && hasState && !hasCountry)
-                || (!hasCity && !hasState && hasCountry);
+            Boolean hasSingleLocation = (hasCity && !hasState && !hasCountry) || (!hasCity && hasState && !hasCountry) || (!hasCity && !hasState && hasCountry);
 
             if(!hasSingleProduct || !hasSingleLocation) {
                 continue;
