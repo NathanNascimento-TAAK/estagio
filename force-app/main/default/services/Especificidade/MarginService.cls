@@ -79,7 +79,7 @@ public with sharing class MarginService {
                 continue;
             }
 
-            Boolean bestUsesExactProduct = bestMargin.Product__c == item.Product2Id;
+            Boolean bestUsesExactProduct = bestMargin.Product__c == item.Product2Id || bestMargin.Product_Hierarchy__c == product.Product_Hierarchy__c;
             Boolean bestUsesExactAccount = bestMargin.Account__c == orderRecord.AccountId;
             Boolean bestUsesExactCity = bestMargin.City__c != null && bestMargin.City__c == cityId;
             Boolean bestUsesExactState = bestMargin.State__c != null && bestMargin.State__c == stateId;

@@ -67,6 +67,7 @@ public with sharing class FreightService {
             }
 
             Boolean bestUsesExactProduct = bestFreight.Product__c == item.Product2Id;
+            Boolean bestUsesExactHierarchy = bestFreight.Product_Hierarchy__c == product.Product_Hierarchy__c;
             Boolean bestUsesExactCity = bestFreight.City__c != null && bestFreight.City__c == cityId;
             Boolean bestUsesExactState = bestFreight.State__c != null && bestFreight.State__c == stateId;
             Boolean bestUsesExactCountry = bestFreight.Country__c != null && bestFreight.Country__c == countryId;
