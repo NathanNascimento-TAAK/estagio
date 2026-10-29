@@ -33,8 +33,7 @@ public with sharing class FreightService {
                 stateId = orderRecord.Account_Address__r.City__r.State__c;
 
                 if (orderRecord.Account_Address__r.City__r.State__r != null) {
-                    countryId =
-                        orderRecord.Account_Address__r.City__r.State__r.Country__c;
+                    countryId = orderRecord.Account_Address__r.City__r.State__r.Country__c;
                 }
             }
         }
@@ -95,18 +94,6 @@ public with sharing class FreightService {
 
     public void validateExistingFreights(List<Freight__c> newFreights, List<Freight__c> existingFreights) {
         for(Freight__c newFreight : newFreights) {
-            Boolean hasProduct = newFreight.Product__c != null;
-            Boolean hasHierarchy = newFreight.Product_Hierarchy__c != null;
-            Boolean hasCity = newFreight.City__c != null;
-            Boolean hasState = newFreight.State__c != null;
-            Boolean hasCountry = newFreight.Country__c != null;
-            Boolean hasSingleProduct = hasProduct != hasHierarchy;
-            Boolean hasSingleLocation = (hasCity && !hasState && !hasCountry) || (!hasCity && hasState && !hasCountry) || (!hasCity && !hasState && hasCountry);
-
-            if(!hasSingleProduct || !hasSingleLocation) {
-                continue;
-            }
-
             for(Freight__c existingFreight : existingFreights) {
                 if(newFreight.Product__c != null && newFreight.Product__c == existingFreight.Product__c && newFreight.Distribution_Center__c == existingFreight.Distribution_Center__c && newFreight.State__c == existingFreight.State__c && newFreight.City__c == existingFreight.City__c && newFreight.Country__c == existingFreight.Country__c) {
                     newFreight.addError('Já existe um registro de frete para este produto/hierarquia e localidade.');

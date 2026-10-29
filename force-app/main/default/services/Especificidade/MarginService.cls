@@ -47,64 +47,57 @@ public with sharing class MarginService {
         }
 
         Margin__c bestMargin;
+        Integer bestScore = 0;
 
         for (Margin__c margin : margins) {
-            if (margin.Distribution_Center__c != orderRecord.Distribution_Center__c) {
+
+            if (margin.Distribution_Center__c !=
+                orderRecord.Distribution_Center__c) {
                 continue;
             }
-            Boolean exactProduct = margin.Product__c == item.Product2Id;
-            Boolean exactHierarchy = margin.Product_Hierarchy__c == product.Product_Hierarchy__c;
+
+            // produto e hierarquia
+            Boolean exactProduct = margin.Product__c != null && margin.Product__c == item.Product2Id;
+
+            Boolean exactHierarchy = margin.Product_Hierarchy__c != null && margin.Product_Hierarchy__c == product.Product_Hierarchy__c;
 
             if (!exactProduct && !exactHierarchy) {
                 continue;
             }
 
-            Boolean exactAccount = margin.Account__c == orderRecord.AccountId;
-            Boolean exactAccountGroup = margin.Account_Group__c == accountGroupId;
+            Integer productScore = exactProduct ? 2000 : 1000;
+
+            //cliente e grupo de contas
+            Boolean exactAccount = margin.Account__c != null && margin.Account__c == orderRecord.AccountId;
+
+            Boolean exactAccountGroup = margin.Account_Group__c != null && margin.Account_Group__c == accountGroupId;
 
             if (!exactAccount && !exactAccountGroup) {
                 continue;
             }
 
+            Integer accountScore = exactAccount ? 200 : 100;
+
+            //localidade
             Boolean exactCity = margin.City__c != null && margin.City__c == cityId;
+
             Boolean exactState = margin.State__c != null && margin.State__c == stateId;
+
             Boolean exactCountry = margin.Country__c != null && margin.Country__c == countryId;
 
             if (!exactCity && !exactState && !exactCountry) {
                 continue;
             }
 
-            if (bestMargin == null) {
+            Integer locationScore = exactCity ? 30 : exactState ? 20 : 10;
+
+            Integer currentScore = productScore + accountScore + locationScore;
+
+            if (bestMargin == null || currentScore > bestScore || (currentScore == bestScore && margin.CreatedDate > bestMargin.CreatedDate)) {
                 bestMargin = margin;
-                continue;
-            }
-
-            Boolean bestUsesExactProduct = bestMargin.Product__c == item.Product2Id || bestMargin.Product_Hierarchy__c == product.Product_Hierarchy__c;
-            Boolean bestUsesExactAccount = bestMargin.Account__c == orderRecord.AccountId;
-            Boolean bestUsesExactCity = bestMargin.City__c != null && bestMargin.City__c == cityId;
-            Boolean bestUsesExactState = bestMargin.State__c != null && bestMargin.State__c == stateId;
-            Boolean bestUsesExactCountry = bestMargin.Country__c != null && bestMargin.Country__c == countryId;
-            Boolean candidateIsMoreSpecific = false;
-
-            if (exactProduct != bestUsesExactProduct) {
-                candidateIsMoreSpecific = exactProduct;
-            } else if (exactAccount != bestUsesExactAccount) {
-                candidateIsMoreSpecific = exactAccount;
-            } else if (exactCity != bestUsesExactCity) {
-                candidateIsMoreSpecific = exactCity;
-            } else if (exactState != bestUsesExactState) {
-                candidateIsMoreSpecific = exactState;
-            } else if (exactCountry != bestUsesExactCountry) {
-                candidateIsMoreSpecific = exactCountry;
-            } else if (margin.CreatedDate != null && (bestMargin.CreatedDate == null || margin.CreatedDate > bestMargin.CreatedDate)) {
-                candidateIsMoreSpecific = true;
-            }
-
-            if (candidateIsMoreSpecific) {
-                bestMargin = margin;
+                bestScore = currentScore;
             }
         }
         return bestMargin;
     }
-
 }

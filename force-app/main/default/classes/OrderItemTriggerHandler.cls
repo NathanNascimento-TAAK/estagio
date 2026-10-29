@@ -48,13 +48,11 @@ public with sharing class OrderItemTriggerHandler extends TriggerHandler {
             }
 
             Margin__c margin = ms.getSpecificMargin(ord, product, orderRecord, margins);
-
             Freight__c freight = fs.getSpecificFreight(ord, product, orderRecord, freights);
-
             Tax__c tax = ts.getSpecificTax(ord, orderRecord, taxes);
 
             if (margin == null || freight == null || tax == null) {
-                ord.addError('Não existem parâmetros de precificação compatíveis com este item.');
+                ord.addError('Não existem parâmetros de precificação compatíveis com este item. Contate o time de Pricing.');
                 continue;
             }
 
