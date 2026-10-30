@@ -17,11 +17,12 @@ public with sharing class FreightService {
         return selectedFreights;
     }
 
-    public Freight__c getSpecificFreight(OrderItem item, Product2 product, Order orderRecord, List<Freight__c> freights){
+    public Freight__c getSpecificFreight(OrderItem item, Product2 product, Order orderRecord, List<Freight__c> freights) {
         if (item == null || product == null || orderRecord == null || freights == null || freights.isEmpty()) {
             return null;
         }
 
+        // Identifica a localidade do pedido.
         Id cityId;
         Id stateId;
         Id countryId;
@@ -33,75 +34,64 @@ public with sharing class FreightService {
                 stateId = orderRecord.Account_Address__r.City__r.State__c;
 
                 if (orderRecord.Account_Address__r.City__r.State__r != null) {
-                    countryId = orderRecord.Account_Address__r.City__r.State__r.Country__c;
+                    countryId =
+                        orderRecord.Account_Address__r.City__r.State__r.Country__c;
                 }
             }
         }
 
         Freight__c bestFreight;
+        Integer bestScore = 0;
 
         for (Freight__c freight : freights) {
-            if (freight.Distribution_Center__c != orderRecord.Distribution_Center__c) {
+
+            // 1. O centro de distribuição precisa corresponder.
+            if (freight.Distribution_Center__c !=
+                orderRecord.Distribution_Center__c) {
                 continue;
             }
 
-            Boolean exactProduct = freight.Product__c == item.Product2Id;
-            Boolean exactHierarchy = freight.Product_Hierarchy__c == product.Product_Hierarchy__c;
+            // 2. Verifica se o frete atende ao produto.
+            Boolean exactProduct =
+                freight.Product__c != null &&
+                freight.Product__c == item.Product2Id;
+
+            Boolean exactHierarchy =
+                freight.Product_Hierarchy__c != null &&
+                freight.Product_Hierarchy__c == product.Product_Hierarchy__c;
 
             if (!exactProduct && !exactHierarchy) {
                 continue;
             }
 
-            Boolean exactCity = freight.City__c != null && freight.City__c == cityId;
-            Boolean exactState = freight.State__c != null && freight.State__c == stateId;
-            Boolean exactCountry = freight.Country__c != null && freight.Country__c == countryId;
+            Integer productScore = exactProduct ? 2000 : 1000;
+
+            // 3. Verifica se o frete atende à localidade.
+            Boolean exactCity =
+                freight.City__c != null && freight.City__c == cityId;
+
+            Boolean exactState =
+                freight.State__c != null && freight.State__c == stateId;
+
+            Boolean exactCountry =
+                freight.Country__c != null && freight.Country__c == countryId;
 
             if (!exactCity && !exactState && !exactCountry) {
                 continue;
             }
 
-            if (bestFreight == null) {
+            Integer locationScore = exactCity ? 30 : exactState ? 20 : 10;
+
+            // 4. Calcula a especificidade total.
+            Integer currentScore = productScore + locationScore;
+
+            // 5. Seleciona o frete com a maior pontuação.
+            if (bestFreight == null || currentScore > bestScore || (currentScore == bestScore && freight.CreatedDate > bestFreight.CreatedDate)) {
                 bestFreight = freight;
-                continue;
-            }
-
-            Boolean bestUsesExactProduct = bestFreight.Product__c == item.Product2Id;
-            Boolean bestUsesExactHierarchy = bestFreight.Product_Hierarchy__c == product.Product_Hierarchy__c;
-            Boolean bestUsesExactCity = bestFreight.City__c != null && bestFreight.City__c == cityId;
-            Boolean bestUsesExactState = bestFreight.State__c != null && bestFreight.State__c == stateId;
-            Boolean bestUsesExactCountry = bestFreight.Country__c != null && bestFreight.Country__c == countryId;
-            Boolean candidateIsMoreSpecific = false;
-
-            if (exactProduct != bestUsesExactProduct) {
-                candidateIsMoreSpecific = exactProduct;
-            } else if (exactCity != bestUsesExactCity) {
-                candidateIsMoreSpecific = exactCity;
-            } else if (exactState != bestUsesExactState) {
-                candidateIsMoreSpecific = exactState;
-            } else if (exactCountry != bestUsesExactCountry) {
-                candidateIsMoreSpecific = exactCountry;
-            } else if (freight.CreatedDate != null && (bestFreight.CreatedDate == null || freight.CreatedDate > bestFreight.CreatedDate)) {
-                candidateIsMoreSpecific = true;
-            }
-
-            if (candidateIsMoreSpecific) {
-                bestFreight = freight;
+                bestScore = currentScore;
             }
         }
 
         return bestFreight;
-    }
-
-    public void validateExistingFreights(List<Freight__c> newFreights, List<Freight__c> existingFreights) {
-        for(Freight__c newFreight : newFreights) {
-            for(Freight__c existingFreight : existingFreights) {
-                if(newFreight.Product__c != null && newFreight.Product__c == existingFreight.Product__c && newFreight.Distribution_Center__c == existingFreight.Distribution_Center__c && newFreight.State__c == existingFreight.State__c && newFreight.City__c == existingFreight.City__c && newFreight.Country__c == existingFreight.Country__c) {
-                    newFreight.addError('Já existe um registro de frete para este produto/hierarquia e localidade.');
-                }
-                else if(newFreight.Product_Hierarchy__c != null && newFreight.Product_Hierarchy__c == existingFreight.Product_Hierarchy__c && newFreight.Distribution_Center__c == existingFreight.Distribution_Center__c && newFreight.State__c == existingFreight.State__c && newFreight.City__c == existingFreight.City__c && newFreight.Country__c == existingFreight.Country__c) {
-                    newFreight.addError('Já existe um registro de frete para este produto/hierarquia e localidade.');
-                }
-            }
-        }
     }
 }

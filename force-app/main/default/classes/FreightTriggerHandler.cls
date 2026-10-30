@@ -23,7 +23,5 @@ public with sharing class FreightTriggerHandler extends TriggerHandler {
                 freight.addError('Preencha uma cidade, um estado ou um país. (Apenas um deles pode ser preenchido.)');
             }
         }
-        FreightService fs = new FreightService();
-        fs.validateExistingFreights((List<Freight__c>) Trigger.new, existingFreights);
     }
 }
