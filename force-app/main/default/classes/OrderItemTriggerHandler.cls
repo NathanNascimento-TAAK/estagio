@@ -61,7 +61,7 @@ public with sharing class OrderItemTriggerHandler extends TriggerHandler {
             ord.Tax_Percentage__c = tax.Tax_on_Cost__c;
 
             if(!ois.validatePercentages(ord.Margin_Percentage__c, ord.Shipping_Cost__c, ord.Tax_Percentage__c)) {
-                ord.addError('Não está autorizada a venda deste produto devido à falta de parâmetros. Contate o time de Pricing.');
+                ord.addError('Os percentuais de margem, frete e imposto são inválidos. Contate o time de Pricing.');
             }
         }
 
@@ -72,6 +72,10 @@ public with sharing class OrderItemTriggerHandler extends TriggerHandler {
             }
             if (product.Production_Cost__c == null) {
                 ord.addError('Não foi possível localizar o custo de produção do produto.');
+                continue;
+            }
+            if(ord.Quantity <= 0) {
+                ord.addError('A quantidade do item do pedido deve ser maior que zero.');
                 continue;
             }
             ord.Price_without_Margin__c = (product.Production_Cost__c + ord.Shipping_Cost__c) * (1 + ord.Tax_Percentage__c / 100);

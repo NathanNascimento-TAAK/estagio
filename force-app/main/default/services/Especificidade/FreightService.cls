@@ -22,7 +22,6 @@ public with sharing class FreightService {
             return null;
         }
 
-        // Identifica a localidade do pedido.
         Id cityId;
         Id stateId;
         Id countryId;
@@ -45,20 +44,15 @@ public with sharing class FreightService {
 
         for (Freight__c freight : freights) {
 
-            // 1. O centro de distribuição precisa corresponder.
             if (freight.Distribution_Center__c !=
                 orderRecord.Distribution_Center__c) {
                 continue;
             }
 
-            // 2. Verifica se o frete atende ao produto.
-            Boolean exactProduct =
-                freight.Product__c != null &&
-                freight.Product__c == item.Product2Id;
+            //produto e hierarquia
+            Boolean exactProduct = freight.Product__c != null && freight.Product__c == item.Product2Id;
 
-            Boolean exactHierarchy =
-                freight.Product_Hierarchy__c != null &&
-                freight.Product_Hierarchy__c == product.Product_Hierarchy__c;
+            Boolean exactHierarchy = freight.Product_Hierarchy__c != null && freight.Product_Hierarchy__c == product.Product_Hierarchy__c;
 
             if (!exactProduct && !exactHierarchy) {
                 continue;
@@ -66,15 +60,12 @@ public with sharing class FreightService {
 
             Integer productScore = exactProduct ? 2000 : 1000;
 
-            // 3. Verifica se o frete atende à localidade.
-            Boolean exactCity =
-                freight.City__c != null && freight.City__c == cityId;
+            //localidade
+            Boolean exactCity = freight.City__c != null && freight.City__c == cityId;
 
-            Boolean exactState =
-                freight.State__c != null && freight.State__c == stateId;
+            Boolean exactState = freight.State__c != null && freight.State__c == stateId;
 
-            Boolean exactCountry =
-                freight.Country__c != null && freight.Country__c == countryId;
+            Boolean exactCountry = freight.Country__c != null && freight.Country__c == countryId;
 
             if (!exactCity && !exactState && !exactCountry) {
                 continue;
@@ -82,10 +73,8 @@ public with sharing class FreightService {
 
             Integer locationScore = exactCity ? 30 : exactState ? 20 : 10;
 
-            // 4. Calcula a especificidade total.
             Integer currentScore = productScore + locationScore;
 
-            // 5. Seleciona o frete com a maior pontuação.
             if (bestFreight == null || currentScore > bestScore || (currentScore == bestScore && freight.CreatedDate > bestFreight.CreatedDate)) {
                 bestFreight = freight;
                 bestScore = currentScore;

@@ -89,7 +89,7 @@ public with sharing class MarginService {
                 continue;
             }
 
-            Integer locationScore = exactCity ? 30 : exactState ? 20 : 10;
+            Integer locationScore = exactState ? 30 : exactCity ? 20 : 10;
 
             Integer currentScore = productScore + accountScore + locationScore;
 
